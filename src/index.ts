@@ -8,6 +8,7 @@
 
 import express from 'express';
 import { config } from 'dotenv';
+import { greet } from './utils/greet';
 
 // Load environment variables
 config();
@@ -62,6 +63,7 @@ class StackrApp {
         message: 'Stackr Bitcoin DCA Automation System',
         version: '0.1.0',
         status: 'running',
+        greeting: greet('Stackr User'),
         endpoints: {
           health: '/health',
           api: '/api'
