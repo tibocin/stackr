@@ -4,8 +4,6 @@
 # RELATED: Dockerfile, docker-compose.override.yml, Bitcoin Knots integration
 # TAGS: docker-compose, bitcoin-knots, testnet, orchestration
 
-version: "3.8"
-
 services:
   # Main Stackr application
   web:
@@ -32,7 +30,7 @@ services:
 
   # Bitcoin Knots testnet node
   bitcoind:
-    image: bitcoin-knots:25.0
+    image: bitcoinknots/bitcoin:latest
     container_name: stackr-bitcoind
     command: >
       bitcoind

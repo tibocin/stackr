@@ -4,8 +4,6 @@
 # RELATED: docker-compose.yml, development workflow
 # TAGS: development, hot-reload, bind-mounts
 
-version: "3.8"
-
 services:
   # Override main application for development
   web:
