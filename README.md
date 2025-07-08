@@ -20,7 +20,7 @@ Withdrawals are handled by your own Bitcoin node using an xpub for fresh address
 - **GDPR-compliant**: Local-first data with optional managed DB for hosted setups
 - **Exchange minimalism**: Buy BTC, then withdraw — no custodial accumulation
 - **Transparent logic**: All logic is programmable, visible, auditable
-- **Node native**: Uses your own Bitcoin Core node for address generation and verification
+- **Node native**: Uses your own Bitcoin Knots node for address generation and verification
 
 ---
 
@@ -40,7 +40,7 @@ Withdrawals are handled by your own Bitcoin node using an xpub for fresh address
 - **Trigger-Based Buying**: Buy when price, volatility, or fiat balance threshold is reached
 - **Multi-Exchange Support**: Works with any connected exchange that supports API trading
 - **Secure Withdrawals**: Withdraw to unused addresses from your xpub
-- **Node Integration**: Connect your own Bitcoin Core node
+- **Node Integration**: Connect your own Bitcoin Knots node
 - **LangGraph Engine**: All triggers and flows handled via open graph logic
 - **Export Logs**: All purchases, withdrawals, and settings exportable as CSV or JSON
 - **Authentication**: Magic link or password login
@@ -49,7 +49,7 @@ Withdrawals are handled by your own Bitcoin node using an xpub for fresh address
 
 ## 🔧 System Requirements
 
-- Bitcoin Core node (RPC accessible)
+- Bitcoin Knots node (RPC accessible)
 - Exchange API keys with trading and withdrawal permissions
 - xpub (Zpub/Ypub/Bip84 compatible preferred)
 - Internet connection
@@ -65,7 +65,7 @@ Withdrawals are handled by your own Bitcoin node using an xpub for fresh address
 3. Configure:
 
    - Your exchange API keys
-   - Your Bitcoin Core RPC endpoint
+   - Your Bitcoin Knots RPC endpoint
    - Your xpub
 
 4. Set up your first DCA schedule or trigger

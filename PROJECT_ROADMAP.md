@@ -9,7 +9,7 @@ This roadmap uses a test-driven approach, with small atomic prompts/functions an
 1. Initialize repository, `package.json`, `.gitignore`, `.eslintrc`, `.prettierrc`
 2. Install core dependencies (Next.js, React, LangGraph, Bitcoin RPC, TS, Jest)
 3. Setup Docker-based dev environment
-4. Run and configure local Bitcoin Core node on testnet
+4. Run and configure local Bitcoin Knots node on testnet
 5. Setup testing (`Jest + React Testing Library`)
 6. Add lint + formatting workflows
 7. GitHub CI/CD: run tests, lint, deploy on merge

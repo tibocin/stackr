@@ -36,7 +36,7 @@ Stackr is a privacy-first Bitcoin DCA and automated withdrawal system built to s
 
 ### 4. Bitcoin Wallet + Node Integration
 
-- **Connect to Bitcoin Core RPC**
+- **Connect to Bitcoin Knots RPC**
 - **Scan xpub for unused addresses**
 - **Send BTC using unsigned PSBT or full RPC wallet**
 - **Optional integration with hardware wallets**
