@@ -14,7 +14,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules # Exclude node_modules from bind mount
-    command: ["npm", "run", "dev"]
+    command: ["npm", "start"]
     ports:
       - "3000:3000"
       - "9229:9229" # Node.js debug port
