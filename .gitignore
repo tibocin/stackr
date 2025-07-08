@@ -1,0 +1,330 @@
+# Stackr Bitcoin DCA Application - Git Ignore Configuration
+#
+# PURPOSE: Excludes files and directories that should not be tracked in version control
+# RELATED: Node.js, TypeScript, Docker, Bitcoin Knots, development environment
+# TAGS: gitignore, nodejs, typescript, docker, bitcoin
+
+# =============================================================================
+# NODE.JS AND NPM/YARN
+# =============================================================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# =============================================================================
+# TYPESCRIPT AND BUILD ARTIFACTS
+# =============================================================================
+
+# TypeScript build output
+dist/
+build/
+*.tsbuildinfo
+
+# Compiled binary addons
+build/Release
+
+# =============================================================================
+# ENVIRONMENT AND CONFIGURATION
+# =============================================================================
+
+# Environment variables (never commit these!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+
+# Configuration files with secrets
+config/secrets.json
+config/local.json
+config/production.json
+
+# =============================================================================
+# DATABASE FILES
+# =============================================================================
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+data/
+databases/
+
+# Database backups
+*.db.backup
+*.sqlite.backup
+
+# =============================================================================
+# BITCOIN KNOTS DATA
+# =============================================================================
+
+# Bitcoin Knots blockchain data
+bitcoin-data/
+.bitcoin/
+bitcoin.conf
+
+# Bitcoin Knots wallet files
+wallet.dat
+wallet.dat.backup
+
+# Bitcoin Knots debug logs
+debug.log
+bitcoin-debug.log
+
+# =============================================================================
+# DOCKER AND CONTAINERS
+# =============================================================================
+
+# Docker volumes and data
+docker-data/
+volumes/
+bitcoin-data/
+
+# Docker logs
+docker-compose.override.yml.local
+
+# =============================================================================
+# IDE AND EDITOR FILES
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# LOGS AND TEMPORARY FILES
+# =============================================================================
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# =============================================================================
+# TESTING AND COVERAGE
+# =============================================================================
+
+# Test coverage
+coverage/
+.nyc_output
+*.lcov
+
+# Jest
+.jest/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettierignore
+
+# Babel
+.babel-cache/
+
+# Webpack
+.webpack/
+
+# Parcel
+.parcel-cache/
+.cache/
+
+# =============================================================================
+# SECURITY AND SENSITIVE FILES
+# =============================================================================
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# GPG keys
+*.gpg
+*.asc
+
+# =============================================================================
+# STACKR SPECIFIC
+# =============================================================================
+
+# Application data
+app-data/
+user-data/
+backups/
+
+# Strategy configurations with secrets
+strategies/config/secrets.json
+
+# Exchange API keys (if stored locally)
+exchanges/
+api-keys/
+
+# Notification tokens
+push-tokens/
+notification-data/
+
+# =============================================================================
+# BACKUP AND ARCHIVE FILES
+# =============================================================================
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Local development overrides
+docker-compose.override.yml.local
+docker-compose.override.yml.backup
+
+# Documentation builds
+docs/build/
+docs/_build/
+
+# Package manager lock files (uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml 
