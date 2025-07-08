@@ -21,10 +21,13 @@ Our CI/CD pipeline is designed to support Test-Driven Development (TDD) while en
 - **Purpose**: Comprehensive testing and validation
 - **Triggers**: Every push and pull request to `main` and `develop`
 - **What it does**:
-  - Runs tests on Node.js 18.x and 20.x
-  - Builds the project
-  - Uploads coverage reports
-  - Tests Docker container startup
+  - **Unit Tests**: Runs tests on Node.js 18.x and 20.x
+  - **Build Validation**: Ensures TypeScript compilation
+  - **Coverage Reports**: Uploads test coverage to Codecov
+  - **Docker Testing**: Validates container builds and startup
+  - **Integration Tests**: Tests with mock Bitcoin RPC service
+  - **Docker Compose**: Full stack testing with all services
+- **Environment**: Sets up test environment variables
 - **Benefits**: Ensures all tests pass before merge
 
 ## TDD Workflow Support
@@ -59,6 +62,9 @@ Our CI/CD pipeline is designed to support Test-Driven Development (TDD) while en
 4. **Multi-Node Testing**: Tests on Node.js 18.x and 20.x
 5. **Docker Validation**: Ensures container builds and starts correctly
 6. **Coverage Tracking**: Monitors test coverage over time
+7. **Integration Testing**: Tests with real service dependencies
+8. **Environment Consistency**: Same env vars in CI and local testing
+9. **Full Stack Testing**: Docker Compose validates entire application stack
 
 ## Usage
 
