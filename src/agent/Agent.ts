@@ -37,10 +37,14 @@ export class Agent {
   /**
    * Records the current node as visited
    * Allows duplicate entries for retry scenarios and audit trails
+   * 
+   * @param allowDuplicates - Whether to allow duplicate entries (default: true for retry scenarios)
    */
-  recordVisit(): void {
+  recordVisit(allowDuplicates: boolean = true): void {
     if (this.currentNode) {
-      this.visitedNodes.push(this.currentNode);
+      if (allowDuplicates || !this.visitedNodes.includes(this.currentNode)) {
+        this.visitedNodes.push(this.currentNode);
+      }
     }
   }
 

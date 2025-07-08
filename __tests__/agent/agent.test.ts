@@ -62,19 +62,35 @@ describe('Agent', () => {
       expect(agent.visitedNodes[0]).toBe(startNode);
     });
 
-    test('should not duplicate visited nodes', () => {
+    test('should not duplicate visited nodes when allowDuplicates is false', () => {
       // Arrange
       const startNode = new Node('start');
       const graph = new Graph(startNode);
       const agent = new Agent(graph);
       
       // Act
-      agent.recordVisit();
-      agent.recordVisit(); // Record same node again
+      agent.recordVisit(false); // Disable duplicates
+      agent.recordVisit(false); // Record same node again
       
       // Assert
       expect(agent.visitedNodes).toHaveLength(1);
       expect(agent.visitedNodes[0]).toBe(startNode);
+    });
+
+    test('should allow duplicate visited nodes for retry scenarios', () => {
+      // Arrange
+      const startNode = new Node('start');
+      const graph = new Graph(startNode);
+      const agent = new Agent(graph);
+      
+      // Act
+      agent.recordVisit(true); // Enable duplicates (default)
+      agent.recordVisit(true); // Record same node again
+      
+      // Assert
+      expect(agent.visitedNodes).toHaveLength(2);
+      expect(agent.visitedNodes[0]).toBe(startNode);
+      expect(agent.visitedNodes[1]).toBe(startNode);
     });
   });
 }); 
