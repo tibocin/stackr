@@ -1,0 +1,103 @@
+# Stackr Bitcoin DCA Application - Docker Compose Configuration
+#
+# PURPOSE: Orchestrates the main application, Bitcoin Knots testnet node, and database
+# RELATED: Dockerfile, docker-compose.override.yml, Bitcoin Knots integration
+# TAGS: docker-compose, bitcoin-knots, testnet, orchestration
+
+version: "3.8"
+
+services:
+  # Main Stackr application
+  web:
+    build: .
+    container_name: stackr-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - BITCOIN_RPC_HOST=bitcoind
+      - BITCOIN_RPC_PORT=18332
+      - BITCOIN_RPC_USER=${BITCOIN_RPC_USER:-stackr}
+      - BITCOIN_RPC_PASSWORD=${BITCOIN_RPC_PASSWORD:-stackr_password}
+      - DATABASE_PATH=/app/data/stackr.db
+    volumes:
+      - stackr_data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      bitcoind:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - stackr-network
+
+  # Bitcoin Knots testnet node
+  bitcoind:
+    image: bitcoin-knots:25.0
+    container_name: stackr-bitcoind
+    command: >
+      bitcoind
+      -testnet
+      -server=1
+      -rpcuser=${BITCOIN_RPC_USER:-stackr}
+      -rpcpassword=${BITCOIN_RPC_PASSWORD:-stackr_password}
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -rpcport=18332
+      -txindex=1
+      -zmqpubrawblock=tcp://0.0.0.0:28332
+      -zmqpubrawtx=tcp://0.0.0.0:28333
+      -datadir=/bitcoin
+      -printtoconsole=1
+    ports:
+      - "18332:18332" # RPC port
+      - "18333:18333" # P2P port
+      - "28332:28332" # ZMQ raw block
+      - "28333:28333" # ZMQ raw tx
+    volumes:
+      - bitcoin_data:/bitcoin
+      - ./bitcoin.conf:/bitcoin/bitcoin.conf:ro
+    restart: unless-stopped
+    networks:
+      - stackr-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bitcoin-cli",
+          "-testnet",
+          "-rpcuser=${BITCOIN_RPC_USER:-stackr}",
+          "-rpcpassword=${BITCOIN_RPC_PASSWORD:-stackr_password}",
+          "getblockchaininfo",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # SQLite database (optional, for development)
+  db:
+    image: alpine:latest
+    container_name: stackr-db
+    command: >
+      sh -c "
+        apk add --no-cache sqlite &&
+        sqlite3 /data/stackr.db 'CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT);' &&
+        sqlite3 /data/stackr.db 'CREATE TABLE IF NOT EXISTS purchases (id INTEGER PRIMARY KEY, date TEXT, amount_fiat REAL, amount_btc REAL, price REAL, exchange_order_id TEXT, status TEXT);' &&
+        sqlite3 /data/stackr.db 'CREATE TABLE IF NOT EXISTS withdrawals (id INTEGER PRIMARY KEY, date TEXT, amount_btc REAL, address TEXT, txid TEXT, status TEXT);' &&
+        tail -f /dev/null
+      "
+    volumes:
+      - stackr_data:/data
+    restart: unless-stopped
+    networks:
+      - stackr-network
+
+volumes:
+  stackr_data:
+    driver: local
+  bitcoin_data:
+    driver: local
+
+networks:
+  stackr-network:
+    driver: bridge

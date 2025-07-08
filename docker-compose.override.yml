@@ -1,0 +1,57 @@
+# Stackr Development Override Configuration
+#
+# PURPOSE: Provides development-specific settings with hot reload and bind mounts
+# RELATED: docker-compose.yml, development workflow
+# TAGS: development, hot-reload, bind-mounts
+
+version: "3.8"
+
+services:
+  # Override main application for development
+  web:
+    environment:
+      - NODE_ENV=development
+      - DEBUG=stackr:*
+      - WATCH=true
+    volumes:
+      - .:/app
+      - /app/node_modules # Exclude node_modules from bind mount
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node.js debug port
+
+  # Override Bitcoin Knots for development (faster sync)
+  bitcoind:
+    command: >
+      bitcoind
+      -testnet
+      -server=1
+      -rpcuser=${BITCOIN_RPC_USER:-stackr}
+      -rpcpassword=${BITCOIN_RPC_PASSWORD:-stackr_password}
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -rpcport=18332
+      -txindex=1
+      -zmqpubrawblock=tcp://0.0.0.0:28332
+      -zmqpubrawtx=tcp://0.0.0.0:28333
+      -datadir=/bitcoin
+      -printtoconsole=1
+      -maxconnections=10
+      -dbcache=100
+      -maxuploadtarget=5000
+    ports:
+      - "18332:18332"
+      - "18333:18333"
+      - "28332:28332"
+      - "28333:28333"
+
+  # Override database for development (persistent data)
+  db:
+    restart: "no"
+    command: >
+      sh -c "
+        apk add --no-cache sqlite &&
+        echo 'Development database initialized' &&
+        tail -f /dev/null
+      "
