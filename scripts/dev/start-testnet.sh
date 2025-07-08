@@ -17,9 +17,9 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ docker-compose is not installed. Please install it and try again."
+# Check if docker compose is available
+if ! docker compose version &> /dev/null; then
+    echo "❌ docker compose is not available. Please install Docker Desktop or Docker Compose and try again."
     exit 1
 fi
 
@@ -39,7 +39,7 @@ echo ""
 
 # Start the services
 echo "🐳 Starting Docker containers..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "⏳ Waiting for Bitcoin Knots to start..."
@@ -50,7 +50,7 @@ max_attempts=30
 attempt=0
 
 while [ $attempt -lt $max_attempts ]; do
-    if docker-compose exec -T bitcoind bitcoin-cli -testnet \
+    if docker compose exec -T bitcoind bitcoin-cli -testnet \
         -rpcuser="$BITCOIN_RPC_USER" \
         -rpcpassword="$BITCOIN_RPC_PASSWORD" \
         getblockchaininfo > /dev/null 2>&1; then
@@ -65,14 +65,14 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     echo "❌ Bitcoin Knots failed to start within expected time."
-    echo "   Check logs with: docker-compose logs bitcoind"
+    echo "   Check logs with: docker compose logs bitcoind"
     exit 1
 fi
 
 # Get blockchain info
 echo ""
 echo "📊 Bitcoin Knots Testnet Status:"
-blockchain_info=$(docker-compose exec -T bitcoind bitcoin-cli -testnet \
+blockchain_info=$(docker compose exec -T bitcoind bitcoin-cli -testnet \
     -rpcuser="$BITCOIN_RPC_USER" \
     -rpcpassword="$BITCOIN_RPC_PASSWORD" \
     getblockchaininfo)
@@ -85,13 +85,13 @@ echo "  - Verification Progress: $(echo "$blockchain_info" | grep -o '"verificat
 # Generate a test wallet if it doesn't exist
 echo ""
 echo "💰 Wallet Setup:"
-if ! docker-compose exec -T bitcoind bitcoin-cli -testnet \
+if ! docker compose exec -T bitcoind bitcoin-cli -testnet \
     -rpcuser="$BITCOIN_RPC_USER" \
     -rpcpassword="$BITCOIN_RPC_PASSWORD" \
     listwallets | grep -q "stackr-wallet"; then
     
     echo "  Creating test wallet..."
-    docker-compose exec -T bitcoind bitcoin-cli -testnet \
+    docker compose exec -T bitcoind bitcoin-cli -testnet \
         -rpcuser="$BITCOIN_RPC_USER" \
         -rpcpassword="$BITCOIN_RPC_PASSWORD" \
         createwallet "stackr-wallet" > /dev/null 2>&1
@@ -102,7 +102,7 @@ else
 fi
 
 # Get wallet info
-wallet_info=$(docker-compose exec -T bitcoind bitcoin-cli -testnet \
+wallet_info=$(docker compose exec -T bitcoind bitcoin-cli -testnet \
     -rpcuser="$BITCOIN_RPC_USER" \
     -rpcpassword="$BITCOIN_RPC_PASSWORD" \
     -rpcwallet="stackr-wallet" \
@@ -116,7 +116,7 @@ else
 fi
 
 # Get a new address for testing
-new_address=$(docker-compose exec -T bitcoind bitcoin-cli -testnet \
+new_address=$(docker compose exec -T bitcoind bitcoin-cli -testnet \
     -rpcuser="$BITCOIN_RPC_USER" \
     -rpcpassword="$BITCOIN_RPC_PASSWORD" \
     -rpcwallet="stackr-wallet" \
@@ -132,10 +132,10 @@ echo "  - Bitcoin P2P: localhost:18333"
 
 echo ""
 echo "📝 Useful Commands:"
-echo "  - View logs: docker-compose logs -f"
-echo "  - Stop services: docker-compose down"
-echo "  - Restart services: docker-compose restart"
-echo "  - Access Bitcoin CLI: docker-compose exec bitcoind bitcoin-cli -testnet -rpcuser=$BITCOIN_RPC_USER -rpcpassword=$BITCOIN_RPC_PASSWORD"
+echo "  - View logs: docker compose logs -f"
+echo "  - Stop services: docker compose down"
+echo "  - Restart services: docker compose restart"
+echo "  - Access Bitcoin CLI: docker compose exec bitcoind bitcoin-cli -testnet -rpcuser=$BITCOIN_RPC_USER -rpcpassword=$BITCOIN_RPC_PASSWORD"
 
 echo ""
 echo "🎉 Stackr testnet environment is ready!"

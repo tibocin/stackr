@@ -9,8 +9,8 @@
     "start": "node dist/index.js",
     "test": "jest",
     "docker:up": "./scripts/dev/start-testnet.sh",
-    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.override.yml up",
-    "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build"
+    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.override.yml up",
+    "docker:test": "docker compose -f docker-compose.yml -f docker-compose.override.yml up --build"
   },
   "keywords": [
     "bitcoin",
