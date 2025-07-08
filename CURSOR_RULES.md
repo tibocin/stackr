@@ -1,0 +1,117 @@
+# Cursor Agent Rules — Atomic Feature Development for `stackr`
+
+This document defines the **step-by-step rules** for Cursor AI agents and human collaborators to follow when developing features in the `stackr` application. This atomic workflow ensures reproducibility, modularity, test coverage, and composable commits at every step.
+
+---
+
+## 🧪 Atomic Development Method
+
+Every unit of work (step) must follow this structure:
+
+### 1. Define Test First (TDD)
+
+- [ ] Create a unit test for the target function in an appropriate test file
+- [ ] Name the test using `should <do expected thing>` format
+- [ ] If a new test file is needed, create it in `__tests__/<area>/<file>.test.ts`
+
+✅ **Commit:** `test: add failing test for <functionName>`
+
+---
+
+### 2. Stub Function with JSDoc
+
+- [ ] Create the function with **typed input/output**
+- [ ] Add a **JSDoc block** that includes:
+  - Purpose
+  - Parameters with types
+  - Edge cases
+  - Return value
+
+✅ **Commit:** `feat: stub <functionName> with typed signature and docs`
+
+---
+
+### 3. Implement Function Logic & Ensure Passing Tests
+
+- [ ] Implement logic for the function with **clean control flow**
+- [ ] Handle edge cases first
+- [ ] Use helper functions only if they are shared and atomic
+- [ ] Run the test file (`yarn test <filename>`)
+- [ ] Confirm the test passes and does not affect others
+
+✅ **Commit:** `feat: implement <functionName> logic`
+
+---
+
+## 🧩 Feature Development Rules
+
+Each **feature** is developed on a dedicated branch named `feature/<name>` and consists of multiple atomic steps.
+
+Once all units are built:
+
+### 5. Write Integration Test for Feature
+
+- [ ] Create a high-level test that calls the feature through its public interface
+- [ ] Simulate a full usage flow, verifying output
+
+✅ **Commit:** `test: add integration test for <feature>`
+
+---
+
+### 6. Mark Feature Complete
+
+- [ ] Ensure checklist is fully checked in `PROJECT_PLAN.md`
+- [ ] Push feature branch and open a PR
+- [ ] Tag with `feature-ready` label
+
+✅ **Commit:** `chore: mark <feature> ready for merge`
+
+---
+
+## 📦 New File Rule
+
+Any time a new file is introduced:
+
+- [ ] Follow top level cursorrules
+- [ ] Create empty file with heading comment and stub exports
+- [ ] Add test file (if needed) in `__tests__`
+- [ ] Commit separately
+
+✅ **Commit:** `chore: add new file <filename>.ts with stub`
+
+---
+
+## 📁 File Naming and Placement
+
+- Tests → `__tests__/<module>/<function>.test.ts`
+- Utilities → `src/utils/<area>/<function>.ts`
+- LangGraph Nodes → `src/graph/nodes/<nodeName>.ts`
+- Services → `src/services/<ServiceName>.ts`
+- Strategies → `src/strategies/<strategyName>.ts`
+- Types → `src/types/<typeGroup>.ts`
+
+---
+
+## 🧼 Commit Prefix Guidelines
+
+| Prefix      | Meaning                                          |
+| ----------- | ------------------------------------------------ |
+| `test:`     | Adds or updates a test                           |
+| `feat:`     | Adds new functionality                           |
+| `fix:`      | Fixes a bug or edge case                         |
+| `chore:`    | Non-functional update or cleanup                 |
+| `docs:`     | Adds or updates documentation                    |
+| `refactor:` | Code change that neither fixes nor adds features |
+
+---
+
+## ✅ Cursor Agent Loop
+
+Each Cursor agent or human contributor should:
+
+1. Select next item from `PROJECT_PLAN.md`
+2. Create feature branch `feature/<name>`
+3. Use this checklist per function
+4. Commit each atomic step
+5. Mark feature complete with integration test
+6. Open PR and link checklist item
