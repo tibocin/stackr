@@ -27,7 +27,7 @@ describe('Agent Execution', () => {
       
       // Act: Step through the graph
       agent.step();
-      
+
       // Assert: Should be at node B
       expect(agent.getCurrentNodeId()).toBe('B');
       expect(agent.getVisitedPath()).toEqual(['A', 'B']);

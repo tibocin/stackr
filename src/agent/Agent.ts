@@ -36,10 +36,10 @@ export class Agent {
 
   /**
    * Records the current node as visited
-   * Prevents duplicate entries in the visited nodes list
+   * Allows duplicate entries for retry scenarios and audit trails
    */
   recordVisit(): void {
-    if (this.currentNode && !this.visitedNodes.includes(this.currentNode)) {
+    if (this.currentNode) {
       this.visitedNodes.push(this.currentNode);
     }
   }
@@ -79,5 +79,55 @@ export class Agent {
    */
   getVisitedPath(): string[] {
     return this.visitedNodes.map(node => node.id);
+  }
+
+  /**
+   * Advances the agent to the next node in the graph
+   * Always records the current node as visited
+   * 
+   * @returns true if the agent advanced, false if no next node available
+   */
+  step(): boolean {
+    if (!this.currentNode) {
+      return false;
+    }
+
+    if (this.visitedNodes.length === 0) {
+    this.recordVisit();
+    }
+
+    // Check if there's a next node to move to
+    const nextNode = this.currentNode.getFirstNextNode();
+    if (nextNode) {
+      this.currentNode = nextNode;
+      this.recordVisit();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Runs the agent through the entire graph from start to finish
+   * Continues stepping until no more nodes are available
+   */
+  runAll(): void {
+    // Step through the graph until we can't advance further
+    while (this.step()) {
+      // Continue stepping until no more nodes available
+    }
+  }
+
+  /**
+   * Checks if the agent has completed the graph traversal
+   * 
+   * @returns true if the agent is at a node with no next nodes, false otherwise
+   */
+  isCompleted(): boolean {
+    if (!this.currentNode) {
+      return true;
+    }
+
+    return !this.currentNode.hasNextNodes();
   }
 } 
