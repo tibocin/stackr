@@ -2,6 +2,8 @@
 
 This document defines the **step-by-step rules** for Cursor AI agents and human collaborators to follow when developing features in the `stackr` application. This atomic workflow ensures reproducibility, modularity, test coverage, and composable commits at every step.
 
+** Ensure top level cursorrules are followed for all files. **
+
 ---
 
 ## 🧪 Atomic Development Method
