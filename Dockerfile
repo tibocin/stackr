@@ -1,53 +1,47 @@
 # Stackr Bitcoin DCA Application - Main Service Container
 # 
-# PURPOSE: Containerizes the Node.js application with TypeScript, LangGraph, and SQLite
+# PURPOSE: Containerizes the Python application with LangGraph, FastAPI, and SQLite
 # RELATED: Bitcoin Knots container, docker-compose orchestration
-# TAGS: docker, nodejs, typescript, langgraph, bitcoin-dca
+# TAGS: docker, python, langgraph, fastapi, bitcoin-dca
 
-# Use Node.js 18 LTS as base image
-FROM node:18-alpine
+# Use Python 3.11 slim as base image
+FROM python:3.11-slim
 
 # Set working directory for the application
 WORKDIR /app
 
 # Install system dependencies for SQLite and other native modules
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    sqlite \
-    && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy package files first for better caching
-COPY package*.json ./
-COPY yarn.lock* ./
+# Copy requirements file first for better caching
+COPY requirements.txt .
 
-# Install all dependencies (including devDependencies for build)
-RUN npm ci && npm cache clean --force
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code
-COPY . .
-
-# Build TypeScript application
-RUN npm run build
-
-# Remove devDependencies to reduce image size
-RUN npm prune --production
+COPY python/ ./python/
+COPY .env* ./
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Change ownership of app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Set Python path
+ENV PYTHONPATH=/app
 
 # Expose port for the application
-EXPOSE 3000
+EXPOSE 8000
 
 # Health check to ensure application is running
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node healthcheck.js || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Default command to run the application
-CMD ["npm", "start"] 
+CMD ["python", "-m", "uvicorn", "python.main:app", "--host", "0.0.0.0", "--port", "8000"] 

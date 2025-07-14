@@ -1,6 +1,6 @@
 # Stackr Bitcoin DCA Application - Docker Compose Configuration
 #
-# PURPOSE: Orchestrates the main application, Bitcoin Knots testnet node, and database
+# PURPOSE: Orchestrates the main Python application, Bitcoin Knots testnet node, and database
 # RELATED: Dockerfile, docker-compose.override.yml, Bitcoin Knots integration
 # TAGS: docker-compose, bitcoin-knots, testnet, orchestration
 
@@ -10,9 +10,9 @@ services:
     build: .
     container_name: stackr-app
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
-      - NODE_ENV=production
+      - PYTHONPATH=/app
       - BITCOIN_RPC_HOST=bitcoind
       - BITCOIN_RPC_PORT=18332
       - BITCOIN_RPC_USER=${BITCOIN_RPC_USER:-stackr}
