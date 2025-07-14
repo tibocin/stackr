@@ -19,6 +19,7 @@ import { LLMStrategy, LLMConfig, LLMProvider, LLMTaskType } from './types';
 import { LLMConfiguration } from './config';
 import { getOptimalModel } from './model-selection';
 import { OpenAIStrategy } from './strategies/openai';
+import { GrokStrategy } from './strategies/grok';
 
 /**
  * LLM Context Class
@@ -100,7 +101,7 @@ function createStrategy(provider: LLMProvider): LLMStrategy {
     case LLMProvider.OPENAI:
       return new OpenAIStrategy();
     case LLMProvider.GROK:
-      throw new Error('Grok strategy not yet implemented');
+      return new GrokStrategy();
     case LLMProvider.VENICE:
       throw new Error('Venice strategy not yet implemented');
     default:
@@ -172,4 +173,5 @@ export async function queryLLM(prompt: string, taskType?: LLMTaskType): Promise<
 export { LLMProvider, LLMTaskType } from './types';
 export { LLMConfiguration } from './config';
 export { getOptimalModel } from './model-selection';
-export { OpenAIStrategy } from './strategies/openai'; 
+export { OpenAIStrategy } from './strategies/openai';
+export { GrokStrategy } from './strategies/grok'; 
