@@ -8,7 +8,7 @@ Tags: test, llm, strategy, factory
 
 import pytest
 from unittest.mock import patch, AsyncMock
-from llm import (
+from ..llm import (
     LLMStrategyFactory,
     LLMStrategy,
     LLMConfig,
@@ -132,14 +132,14 @@ class TestLLMConfig:
 
     def test_config_creation(self):
         """Test creating LLM config"""
-        config = LLMConfig("test", "test-key", "test-model")
+        config = LLMConfig(provider="test", api_key="test-key", model="test-model")
         assert config.provider == "test"
         assert config.api_key == "test-key"
         assert config.model == "test-model"
 
     def test_config_default_model(self):
         """Test config with default model"""
-        config = LLMConfig("test", "test-key")
+        config = LLMConfig(provider="test", api_key="test-key")
         assert config.provider == "test"
         assert config.api_key == "test-key"
         assert config.model is None 

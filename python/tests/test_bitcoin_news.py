@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import patch, AsyncMock
-from workflows.bitcoin_news import BitcoinNewsWorkflow
+from ..workflows.bitcoin_news import BitcoinNewsWorkflow
 
 
 @pytest.mark.asyncio
@@ -22,13 +22,16 @@ async def test_bitcoin_news_workflow_success():
     workflow = BitcoinNewsWorkflow()
 
     # Mock the LLM strategies
-    with (patch.object(workflow.openai, 'query', 
+    with (patch.object(workflow.openai, 'query_with_web_search', 
+                      new_callable=AsyncMock) as mock_openai_web,
+          patch.object(workflow.openai, 'query', 
                       new_callable=AsyncMock) as mock_openai,
           patch.object(workflow.grok, 'query', 
                       new_callable=AsyncMock) as mock_grok):
 
         # Setup mock responses
-        mock_openai.side_effect = [mock_headline, json.dumps(mock_sentiment)]
+        mock_openai_web.return_value = mock_headline
+        mock_openai.return_value = json.dumps(mock_sentiment)
         mock_grok.return_value = mock_summary
 
         # Run workflow
@@ -42,7 +45,8 @@ async def test_bitcoin_news_workflow_success():
         assert result["end_time"] is not None
 
         # Verify LLM calls
-        assert mock_openai.call_count == 2
+        assert mock_openai_web.call_count == 1
+        assert mock_openai.call_count == 1
         assert mock_grok.call_count == 1
 
 
@@ -52,9 +56,9 @@ async def test_bitcoin_news_workflow_missing_headline():
 
     workflow = BitcoinNewsWorkflow()
 
-    with (patch.object(workflow.openai, 'query', 
-                      new_callable=AsyncMock) as mock_openai):
-        mock_openai.return_value = None
+    with (patch.object(workflow.openai, 'query_with_web_search', 
+                      new_callable=AsyncMock) as mock_openai_web):
+        mock_openai_web.return_value = None
 
         with pytest.raises(ValueError, 
                           match="Cannot summarize: headline is missing"):
@@ -67,13 +71,15 @@ async def test_bitcoin_news_workflow_invalid_sentiment():
 
     workflow = BitcoinNewsWorkflow()
 
-    with (patch.object(workflow.openai, 'query', 
+    with (patch.object(workflow.openai, 'query_with_web_search', 
+                      new_callable=AsyncMock) as mock_openai_web,
+          patch.object(workflow.openai, 'query', 
                       new_callable=AsyncMock) as mock_openai,
           patch.object(workflow.grok, 'query', 
                       new_callable=AsyncMock) as mock_grok):
 
-        mock_openai.side_effect = ["Bitcoin price drops", 
-                                  "Invalid JSON response"]
+        mock_openai_web.return_value = "Bitcoin price drops"
+        mock_openai.return_value = "Invalid JSON response"
         mock_grok.return_value = "Bitcoin experienced a decline"
 
         with pytest.raises(ValueError, 
