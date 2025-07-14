@@ -116,7 +116,7 @@ export enum LLMTaskType {
   CODE_GENERATION = 'code_generation',
   REASONING = 'reasoning',
   FAST_PROCESSING = 'fast_processing',
-  VISION = 'vision'
+  VISION = 'vision',
 }
 
 /**
@@ -150,17 +150,25 @@ interface ModelCriteria {
  * Gets the optimal model for a specific task type across available providers
  * 
  * @param taskType - The type of task to optimize for
- * @param availableProviders - Array of available provider API keys
+ * @param availableProviders - Array of available provider API keys (optional, will auto-detect)
  * @param budget - Optional budget constraint ('budget', 'standard', 'premium', 'ultra')
  * @param priority - Optional priority ('cost', 'speed', 'quality')
  * @returns ModelCriteria - The recommended model with provider info
  */
 export function getOptimalModel(
   taskType: LLMTaskType, 
-  availableProviders: LLMProvider[] = [LLMProvider.OPENAI, LLMProvider.GROK, LLMProvider.VENICE],
+  availableProviders?: LLMProvider[],
   budget: 'budget' | 'standard' | 'premium' | 'ultra' = 'standard',
   priority: 'cost' | 'speed' | 'quality' = 'quality'
 ): ModelCriteria {
+  
+  // Auto-detect available providers if not specified
+  const detectedProviders: LLMProvider[] = [];
+  if (process.env['OPENAI_API_KEY']) detectedProviders.push(LLMProvider.OPENAI);
+  if (process.env['GROK_API_KEY']) detectedProviders.push(LLMProvider.GROK);
+  if (process.env['VENICE_API_KEY']) detectedProviders.push(LLMProvider.VENICE);
+  
+  const providers = availableProviders || detectedProviders;
   
   // Define model capabilities for each provider
   const modelOptions: ModelCriteria[] = [
@@ -422,7 +430,7 @@ export function getOptimalModel(
 
   // Filter by available providers
   const availableModels = modelOptions.filter(option => 
-    availableProviders.includes(option.provider)
+    providers.includes(option.provider)
   );
 
   // Filter by task requirements
@@ -446,9 +454,9 @@ export function getOptimalModel(
   // Filter by budget
   const budgetFiltered = suitableModels.filter(option => {
     switch (budget) {
-      case 'budget': return option.costPer1MInputTokens <= 0.2;
-      case 'standard': return option.costPer1MInputTokens <= 1.0;
-      case 'premium': return option.costPer1MInputTokens <= 5.0;
+      case 'budget': return option.costPer1MInputTokens <= 0.5;
+      case 'standard': return option.costPer1MInputTokens <= 2.0;
+      case 'premium': return option.costPer1MInputTokens <= 10.0;
       case 'ultra': return true;
       default: return true;
     }
