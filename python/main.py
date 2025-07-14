@@ -10,6 +10,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from typing import Dict, Any
+from pydantic import BaseModel, EmailStr
+
+# Import our AuthService
+from python.services.auth_service import AuthService
 
 app = FastAPI(
     title="Stackr Bitcoin DCA",
@@ -25,6 +29,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize AuthService
+auth_service = AuthService()
+
+# Pydantic models for request/response
+class RequestLinkRequest(BaseModel):
+    email: EmailStr
+
+class RequestLinkResponse(BaseModel):
+    message: str
+    token: str
+
+class VerifyTokenResponse(BaseModel):
+    message: str
 
 @app.get("/")
 async def root() -> Dict[str, str]:
@@ -66,12 +84,39 @@ async def api_info() -> Dict[str, Any]:
             "root": "/",
             "health": "/health",
             "docs": "/docs",
-            "redoc": "/redoc"
+            "redoc": "/redoc",
+            "auth": {
+                "request_link": "POST /auth/request-link",
+                "verify_token": "GET /auth/verify"
+            }
         },
         "workflows": {
             "bitcoin_news": "Available via LangGraph workflows"
         }
     }
+
+@app.post("/auth/request-link", response_model=RequestLinkResponse)
+async def request_magic_link(request: RequestLinkRequest) -> RequestLinkResponse:
+    """Request a magic link to be sent to the provided email."""
+    try:
+        token = auth_service.send_link(request.email)
+        return RequestLinkResponse(
+            message="Magic link requested successfully",
+            token=token
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/auth/verify", response_model=VerifyTokenResponse)
+async def verify_magic_link(token: str) -> VerifyTokenResponse:
+    """Verify a magic link token."""
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is required")
+    
+    if auth_service.verify_token(token):
+        return VerifyTokenResponse(message="Token verified successfully")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
 
 if __name__ == "__main__":
     import uvicorn

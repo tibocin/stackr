@@ -19,7 +19,7 @@ def test_request_link_endpoint_should_reject_invalid_email():
     """POST /auth/request-link should reject invalid email format."""
     response = client.post("/auth/request-link", json={"email": "invalid-email"})
     
-    assert response.status_code == 400, "Should return 400 for invalid email"
+    assert response.status_code == 422, "Should return 422 for invalid email (Pydantic validation error)"
     data = response.json()
     assert "detail" in data, "Error response should contain detail field"
 
