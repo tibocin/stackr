@@ -7,11 +7,11 @@
  */
 
 import { 
-  LLMConfig, 
   LLMProvider, 
   LLMTaskType, 
   getOptimalModel 
 } from '../../src/llm';
+import { LLMConfiguration } from '../../src/llm/config';
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -88,7 +88,7 @@ describe('LLM Integration Tests', () => {
       process.env['OPENAI_MODEL'] = 'gpt-4o';
 
       // Act
-      const config = new LLMConfig();
+      const config = new LLMConfiguration();
 
       // Assert
       expect(config.provider).toBe(LLMProvider.OPENAI);
@@ -142,7 +142,7 @@ describe('LLM Integration Tests', () => {
       process.env['GROK_MODEL'] = 'grok-4-0709';
 
       // Act
-      const config = new LLMConfig();
+      const config = new LLMConfiguration();
 
       // Assert
       expect(config.provider).toBe(LLMProvider.GROK);
@@ -318,7 +318,7 @@ describe('LLM Integration Tests', () => {
       // Arrange - No API keys set
 
       // Act & Assert
-      expect(() => new LLMConfig()).toThrow('No LLM API key configured');
+      expect(() => new LLMConfiguration()).toThrow('No LLM API key configured');
     });
 
     it('should provide fallback when no suitable models found', () => {

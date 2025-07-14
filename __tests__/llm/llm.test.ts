@@ -6,7 +6,8 @@
  * @tags llm, query, stub
  */
 
-import { queryLLM, LLMConfig, LLMProvider } from '../../src/llm';
+import { queryLLM, LLMProvider } from '../../src/llm';
+import { LLMConfiguration } from '../../src/llm/config';
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -55,7 +56,7 @@ describe('LLM Module', () => {
       process.env['OPENAI_MODEL'] = 'gpt-4';
 
       // Act
-      const config = new LLMConfig();
+      const config = new LLMConfiguration();
 
       // Assert
       expect(config.provider).toBe(LLMProvider.OPENAI);
@@ -69,7 +70,7 @@ describe('LLM Module', () => {
       process.env['VENICE_MODEL'] = 'qwen-2.5-qwq-32b';
 
       // Act
-      const config = new LLMConfig();
+      const config = new LLMConfiguration();
 
       // Assert
       expect(config.provider).toBe(LLMProvider.VENICE);
@@ -81,7 +82,7 @@ describe('LLM Module', () => {
       // Arrange - no environment variables set
 
       // Act & Assert
-      expect(() => new LLMConfig()).toThrow('No LLM API key configured');
+      expect(() => new LLMConfiguration()).toThrow('No LLM API key configured');
     });
   });
 
