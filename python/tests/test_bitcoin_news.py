@@ -1,3 +1,4 @@
+import json
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
@@ -24,19 +25,20 @@ async def test_bitcoin_news_workflow_success():
          patch.object(workflow.grok, 'query', new_callable=AsyncMock) as mock_grok:
         
         # Setup mock responses
-        mock_openai.side_effect = [mock_headline, mock_sentiment]
+        mock_openai.side_effect = [mock_headline, json.dumps(mock_sentiment)]
         mock_grok.return_value = mock_summary
         
         # Run workflow
         result = await workflow.run()
         
         # Verify results
-        assert result.headline == mock_headline
-        assert result.summary == mock_summary
-        assert result.sentiment == mock_sentiment
-        assert result.end_time is not None
+        assert result["headline"] == mock_headline
+        assert result["summary"] == mock_summary
+        assert result["sentiment"] == mock_sentiment
+        assert result["start_time"] is not None
+        assert result["end_time"] is not None
         
-        # Verify calls
+        # Verify LLM calls
         assert mock_openai.call_count == 2
         assert mock_grok.call_count == 1
 
