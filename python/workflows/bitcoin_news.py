@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Dict, Any
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from .state import BitcoinNewsState
-from ..llm.strategies import OpenAIStrategy, GrokStrategy
+from workflows.state import BitcoinNewsState
+from llm.strategies import OpenAIStrategy, GrokStrategy
 from uuid import uuid4
 
 class BitcoinNewsWorkflow:
