@@ -53,7 +53,7 @@ describe('Bitcoin News Workflow', () => {
       mockGrokStrategy.query.mockResolvedValueOnce(mockSummary); // Step 2: Summarization
 
       // Execute the workflow
-      const result = await analyzeBitcoinNews();
+      const result = await analyzeBitcoinNews(mockOpenAIStrategy, mockGrokStrategy);
 
       // Verify the result structure
       expect(result).toEqual({
@@ -84,7 +84,7 @@ describe('Bitcoin News Workflow', () => {
       mockOpenAIStrategy.query.mockRejectedValueOnce(new Error('API rate limit exceeded'));
 
       // Should throw an error
-      await expect(analyzeBitcoinNews()).rejects.toThrow('API rate limit exceeded');
+      await expect(analyzeBitcoinNews(mockOpenAIStrategy, mockGrokStrategy)).rejects.toThrow('API rate limit exceeded');
     });
 
     it('should validate sentiment analysis format', async () => {
@@ -99,7 +99,7 @@ describe('Bitcoin News Workflow', () => {
       mockGrokStrategy.query.mockResolvedValueOnce(mockSummary);
 
       // Should handle invalid JSON gracefully
-      await expect(analyzeBitcoinNews()).rejects.toThrow('Invalid sentiment analysis format');
+      await expect(analyzeBitcoinNews(mockOpenAIStrategy, mockGrokStrategy)).rejects.toThrow('Invalid sentiment analysis format');
     });
   });
 }); 
