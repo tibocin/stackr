@@ -1,10 +1,11 @@
 import json
 from datetime import datetime
 from typing import Dict, Any
-from langgraph import StateGraph, END
+from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from .state import BitcoinNewsState
 from ..llm.strategies import OpenAIStrategy, GrokStrategy
+from uuid import uuid4
 
 class BitcoinNewsWorkflow:
     """Bitcoin news analysis workflow using LangGraph"""
@@ -27,6 +28,9 @@ class BitcoinNewsWorkflow:
         workflow.add_edge("web_search", "summarize")
         workflow.add_edge("summarize", "sentiment")
         workflow.add_edge("sentiment", END)
+        
+        # Set entry point
+        workflow.set_entry_point("web_search")
         
         return workflow.compile(checkpointer=MemorySaver())
     
@@ -67,7 +71,9 @@ class BitcoinNewsWorkflow:
         return state
     
     async def run(self) -> BitcoinNewsState:
-        """Run the workflow"""
+        """Run the workflow with a unique thread_id for checkpointing"""
         initial_state = BitcoinNewsState()
-        result = await self.graph.ainvoke(initial_state)
+        thread_id = str(uuid4())  # Generate a unique thread/session ID
+        # Pass thread_id in the config dict as required by LangGraph checkpointer
+        result = await self.graph.ainvoke(initial_state, config={"configurable": {"thread_id": thread_id}})
         return result
