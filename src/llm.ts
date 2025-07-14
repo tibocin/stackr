@@ -29,5 +29,7 @@
  */
 export async function queryLLM(prompt: string): Promise<string> {
   // TODO: Integrate real LLM call (e.g., via Python backend or external API)
+  // For now, this is a stub that will be replaced with actual LLM integration
+  console.log(`LLM query stub called with prompt: ${prompt}`);
   throw new Error("Not implemented");
 } 
