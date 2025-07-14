@@ -45,8 +45,9 @@ export enum LLMModel {
   GPT_4o_Audio = 'gpt-4o-audio', // Real-time audio model
 
   // xAI (Grok) Models
-  GROK_3_MINI = 'grok-3-mini', // Budget, fast for focused tasks
+  GROK_3_MINI = 'grok-3-mini', // Standard, fast for focused tasks
   GROK_4 = 'grok-4-0709', // Flagship complex tasks
+  GROK_3_MINI_FAST = 'grok-3-mini-fast', // Fast, good for analytics
   
   // Venice AI Models - Analytics & Reasoning
   VENICE_REASONING = 'qwen-2.5-qwq-32b',           // Best for reasoning tasks
@@ -314,6 +315,29 @@ export function getOptimalModel(
       model: LLMModel.GROK_3_MINI,
       costPer1MInputTokens: 0.3,
       costPer1MOutputTokens: 0.5,
+      speed: 'fast',
+      capabilities: { 
+        reasoning: true, 
+        functions: true,
+        structured_output: true,
+        code: true, 
+        vision: false, 
+        context: 128000,
+        streaming: true
+      },
+      tools: {
+        web_search: true,
+        file_search: true,
+        image_generation: true,
+        code_interpreter: true,
+        mcp: true,
+      },
+    },
+    {
+      provider: LLMProvider.GROK,
+      model: LLMModel.GROK_3_MINI_FAST,
+      costPer1MInputTokens: 0.6,
+      costPer1MOutputTokens: 4.0,
       speed: 'fast',
       capabilities: { 
         reasoning: true, 
