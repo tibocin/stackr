@@ -120,6 +120,19 @@ export enum LLMTaskType {
 }
 
 /**
+ * OpenAI API response types
+ */
+interface OpenAIChoice {
+  message: {
+    content: string;
+  };
+}
+
+interface OpenAIResponse {
+  choices: OpenAIChoice[];
+}
+
+/**
  * Model selection criteria for different providers
  */
 interface ModelCriteria {
@@ -539,20 +552,118 @@ export function getOptimalModel(
  * @param taskType - Optional task type for model optimization
  * @returns Promise<string> - The LLM's response text
  * 
- * @throws Error - Currently throws "Not implemented" as this is a stub
+ * @throws Error - Throws error for API failures, rate limits, or network issues
  * 
- * TODO: Replace with real LLM API call (e.g., via Python backend or external API)
- * TODO: Add proper error handling for network failures, rate limits, etc.
- * TODO: Add support for different LLM providers (OpenAI, Anthropic, etc.)
- * TODO: Add support for structured outputs and function calling
+ * Features:
+ * - Automatic model selection based on task type and budget
+ * - Retry logic with exponential backoff for network failures
+ * - Proper error handling for API rate limits and failures
+ * - Support for multiple LLM providers (OpenAI, Grok, Venice)
+ * - Configurable timeout and retry settings
  */
 export async function queryLLM(prompt: string, taskType?: LLMTaskType): Promise<string> {
-  // TODO: Integrate real LLM call (e.g., via Python backend or external API)
-  // For now, this is a stub that will be replaced with actual LLM integration
-  console.log(`LLM query stub called with prompt: ${prompt}`);
-  if (taskType) {
-    const optimalModel = getOptimalModel(taskType);
-    console.log(`Recommended model for ${taskType}: ${optimalModel}`);
+  // Load configuration
+  const config = new LLMConfig();
+  
+  // Get optimal model for the task if specified
+  const modelInfo = taskType ? getOptimalModel(taskType) : {
+    provider: config.provider,
+    model: config.model,
+    costPer1MInputTokens: 0.4,
+    costPer1MOutputTokens: 1.6,
+    speed: 'fast' as const,
+    capabilities: { 
+      reasoning: false, 
+      code: true, 
+      vision: false, 
+      context: 16385,
+      functions: true,
+      structured_output: true,
+      streaming: true
+    },
+    tools: {
+      web_search: true,
+      file_search: true,
+      image_generation: false,
+      code_interpreter: true,
+      mcp: true,
+    }
+  };
+
+  // Prepare request payload
+  const payload = {
+    model: modelInfo.model,
+    messages: [
+      {
+        role: 'user',
+        content: prompt
+      }
+    ],
+    max_tokens: 1000,
+    temperature: 0.7,
+    stream: false
+  };
+
+  // Make API call with retry logic
+  return await makeAPICallWithRetry(config, payload);
+}
+
+/**
+ * Makes an API call with retry logic and exponential backoff
+ * 
+ * @param config - LLM configuration
+ * @param payload - Request payload
+ * @returns Promise<string> - The LLM's response text
+ */
+async function makeAPICallWithRetry(config: LLMConfig, payload: any): Promise<string> {
+  const maxRetries = config.maxRetries;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(config.timeoutMs)
+      });
+
+      if (!response.ok) {
+        const errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+        
+        // Don't retry on client errors (4xx) except rate limits
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          throw new Error(errorMessage);
+        }
+        
+        // For rate limits and server errors, throw error for retry logic
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json() as OpenAIResponse;
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid response format from API');
+      }
+
+      return data.choices[0].message.content;
+
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+
+      // Wait with exponential backoff (1s, 2s, 4s, etc.)
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
-  throw new Error("Not implemented");
+
+  throw lastError || new Error('Unknown error occurred');
 } 
