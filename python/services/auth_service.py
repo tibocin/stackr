@@ -32,7 +32,8 @@ class AuthService:
         """Initialize the AuthService."""
         # TODO: Add database connection for token persistence
         # TODO: Add email service integration
-        pass
+        # Temporary in-memory storage for tokens
+        self._valid_tokens: set[str] = set()
 
     def send_link(self, email: str) -> str:  # noqa: D401
         """Send a magic-login link to *email* and return the token.
@@ -59,10 +60,36 @@ class AuthService:
         # Generate cryptographically-secure token
         token = self._generate_secure_token()
         
+        # Store token as valid (temporary in-memory storage)
+        self._valid_tokens.add(token)
+        
         # TODO: Persist token with expiry timestamp
         # TODO: Send email with magic link containing token
         
         return token
+
+    def verify_token(self, token: str) -> bool:
+        """Verify if a token is valid and return True if so.
+
+        Parameters
+        ----------
+        token : str
+            The token to verify.
+
+        Returns
+        -------
+        bool
+            True if the token is valid, False otherwise.
+        """
+        if not token:
+            return False
+            
+        is_valid = token in self._valid_tokens
+        
+        # TODO: Remove token after verification (one-time use)
+        # TODO: Check token expiry timestamp
+        
+        return is_valid
 
     def _generate_secure_token(self, length: int = 42) -> str:
         """Generate a cryptographically-secure random token.
