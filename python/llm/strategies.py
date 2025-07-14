@@ -56,7 +56,7 @@ class GrokStrategy(LLMStrategy):
         config = LLMConfig(
             provider="grok", 
             api_key=os.getenv("GROK_API_KEY", ""),
-            model="grok-3-mini-fast"
+            model="grok-3-mini"
         )
         super().__init__(config)
     
