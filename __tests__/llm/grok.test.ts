@@ -103,11 +103,16 @@ describe('Grok Strategy', () => {
 
     it('should handle Grok API errors gracefully', async () => {
       // Arrange
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      const errorResponse = {
         ok: false,
         status: 429,
         statusText: 'Too Many Requests'
-      });
+      };
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse);
 
       // Act & Assert
       await expect(grokStrategy.query('Test prompt', config))
@@ -140,11 +145,11 @@ describe('Grok Strategy', () => {
       const invalidResponse = {
         choices: [] // Empty choices array
       };
-      
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => invalidResponse
-      });
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({ ok: true, json: async () => invalidResponse })
+        .mockResolvedValueOnce({ ok: true, json: async () => invalidResponse })
+        .mockResolvedValueOnce({ ok: true, json: async () => invalidResponse })
+        .mockResolvedValueOnce({ ok: true, json: async () => invalidResponse });
 
       // Act & Assert
       await expect(grokStrategy.query('Test prompt', config))
@@ -169,6 +174,47 @@ describe('Grok Strategy', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         'https://api.x.ai/v1/chat/completions',
         expect.any(Object)
+      );
+    });
+
+    it('should include advanced options in the payload', async () => {
+      // Arrange
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: 'Advanced options test response.'
+            }
+          }
+        ]
+      };
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse
+      });
+      const advancedOptions = {
+        response_format: [{ type: 'json' }],
+        search_parameters: [{ mode: 'web', return_citations: true }],
+        temperature: 0.2,
+        user: 'test-user-123'
+      };
+
+      // Act
+      const result = await grokStrategy.query('Test with advanced options', config, advancedOptions);
+
+      // Assert
+      expect(result).toBe('Advanced options test response.');
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/chat/completions',
+        expect.objectContaining({
+          body: expect.stringContaining('"response_format":[{"type":"json"}]'),
+        })
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/chat/completions',
+        expect.objectContaining({
+          body: expect.stringContaining('"user":"test-user-123"'),
+        })
       );
     });
   });
@@ -207,11 +253,16 @@ describe('Grok Strategy', () => {
 
     it('should not retry on client errors (4xx) except rate limits', async () => {
       // Arrange
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      const errorResponse = {
         ok: false,
         status: 400,
         statusText: 'Bad Request'
-      });
+      };
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse);
 
       // Act & Assert
       await expect(grokStrategy.query('Test prompt', config))

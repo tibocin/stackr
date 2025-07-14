@@ -18,6 +18,35 @@
 import { LLMStrategy, LLMConfig } from '../types';
 
 /**
+ * Advanced Grok payload options (optional fields)
+ */
+export interface GrokPayloadOptions {
+  deferred?: any;
+  frequency_penalty?: number | null;
+  logit_bias?: any;
+  logprobs?: any;
+  max_completion_tokens?: number | null;
+  max_tokens?: number | null;
+  n?: number | null;
+  parallel_tool_calls?: any;
+  presence_penalty?: number | null;
+  reasoning_effort?: any;
+  response_format?: any;
+  search_parameters?: any;
+  seed?: number | null;
+  stop?: string[] | null;
+  stream?: boolean | null;
+  stream_options?: any;
+  temperature?: number | null;
+  tool_choice?: any;
+  tools?: any;
+  top_logprobs?: any;
+  top_p?: number | null;
+  user?: string | null;
+  web_search_options?: any;
+}
+
+/**
  * Grok API response types
  */
 interface GrokChoice {
@@ -37,15 +66,16 @@ interface GrokResponse {
 export class GrokStrategy implements LLMStrategy {
   
   /**
-   * Query the Grok LLM with the given prompt
+   * Query the Grok LLM with the given prompt and advanced options
    * 
    * @param prompt - The text prompt to send to the LLM
    * @param config - Configuration for the Grok provider
+   * @param options - Advanced Grok payload options (optional)
    * @returns Promise<string> - The LLM's response text
    * 
    * @throws Error - Throws error for API failures, rate limits, or network issues
    */
-  async query(prompt: string, config: LLMConfig): Promise<string> {
+  async query(prompt: string, config: LLMConfig, options?: GrokPayloadOptions): Promise<string> {
     // Prepare request payload for Grok API
     const payload = {
       model: config.model,
@@ -57,7 +87,8 @@ export class GrokStrategy implements LLMStrategy {
       ],
       max_tokens: 1000,
       temperature: 0.7,
-      stream: false
+      stream: false,
+      ...options // Merge in advanced options
     };
 
     // Make API call with retry logic
@@ -108,12 +139,11 @@ export class GrokStrategy implements LLMStrategy {
 
         if (!response.ok) {
           const errorMessage = `Grok API request failed: ${response.status} ${response.statusText}`;
-          
           // Don't retry on client errors (4xx) except rate limits
           if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-            throw new Error(errorMessage);
+            lastError = new Error(errorMessage);
+            break; // Exit retry loop immediately
           }
-          
           // For rate limits and server errors, throw error for retry logic
           throw new Error(errorMessage);
         }
