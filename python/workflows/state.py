@@ -1,15 +1,13 @@
-from typing import Optional, Dict
-from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional, Dict, Any
+from pydantic import BaseModel
+
 
 class BitcoinNewsState(BaseModel):
-    """Simplified state for Bitcoin news analysis workflow"""
-    
-    # Core data (what we actually care about)
+    """State for Bitcoin news workflow"""
+
     headline: Optional[str] = None
     summary: Optional[str] = None
-    sentiment: Optional[Dict[str, str]] = None
-    
-    # Minimal metadata (for monitoring)
+    sentiment: Optional[Dict[str, Any]] = None
     start_time: datetime = datetime.now()
     end_time: Optional[datetime] = None
