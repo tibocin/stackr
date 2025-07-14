@@ -12,6 +12,8 @@ TAGS: auth, magic-link, service-layer
 
 from typing import Final
 import re
+import secrets
+import string
 
 EMAIL_REGEX: Final[re.Pattern[str]] = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -21,10 +23,16 @@ class AuthService:
 
     Notes
     -----
-    This is a *stub* implementation created as part of the atomic
-    development process. Real logic (token generation, persistence,
-    email dispatch) will be added in a subsequent commit.
+    This implementation generates cryptographically-secure tokens
+    and validates email format. Email dispatch and persistence
+    will be added in subsequent commits.
     """
+
+    def __init__(self) -> None:
+        """Initialize the AuthService."""
+        # TODO: Add database connection for token persistence
+        # TODO: Add email service integration
+        pass
 
     def send_link(self, email: str) -> str:  # noqa: D401
         """Send a magic-login link to *email* and return the token.
@@ -42,11 +50,32 @@ class AuthService:
         Returns
         -------
         str
-            One-time token to be embedded in the magic link. Empty string in
-            stub to ensure unit test currently fails.
+            One-time token to be embedded in the magic link. Currently
+            generates a secure random token but does not persist or email it.
         """
         if not EMAIL_REGEX.match(email):
             raise ValueError("Invalid email format")
 
-        # TODO: Generate cryptographically-secure token, persist, dispatch email
-        return "" 
+        # Generate cryptographically-secure token
+        token = self._generate_secure_token()
+        
+        # TODO: Persist token with expiry timestamp
+        # TODO: Send email with magic link containing token
+        
+        return token
+
+    def _generate_secure_token(self, length: int = 42) -> str:
+        """Generate a cryptographically-secure random token.
+        
+        Parameters
+        ----------
+        length : int, optional
+            Length of the token in characters. Default is 42.
+            
+        Returns
+        -------
+        str
+            Random token using URL-safe characters.
+        """
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(length)) 
