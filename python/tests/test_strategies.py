@@ -8,7 +8,7 @@ Tags: test, llm, strategy, factory
 
 import pytest
 from unittest.mock import patch, AsyncMock
-from ..llm import (
+from python.llm import (
     LLMStrategyFactory,
     LLMStrategy,
     LLMConfig,

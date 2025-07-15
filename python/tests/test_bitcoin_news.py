@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import patch, AsyncMock
-from ..workflows.bitcoin_news import BitcoinNewsWorkflow
+from python.workflows.bitcoin_news import BitcoinNewsWorkflow
 
 
 @pytest.mark.asyncio
