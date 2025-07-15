@@ -140,6 +140,7 @@ jobs:
             -e BITCOIN_RPC_PORT=18332 \
             -e BITCOIN_RPC_USER=test \
             -e BITCOIN_RPC_PASSWORD=test \
+            -p 8000:8000 \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }} &
 
           # Wait for container to start
