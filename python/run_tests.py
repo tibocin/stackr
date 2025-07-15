@@ -24,6 +24,9 @@ def main():
     # Set environment variable for Python path
     os.environ['PYTHONPATH'] = f"{current_dir}:{parent_dir}"
     
+    # Install required test dependencies
+    subprocess.run([sys.executable, '-m', 'pip', 'install', 'pytest', 'pytest-asyncio', 'httpx'], check=True)
+    
     # Run pytest with proper arguments
     test_dir = os.path.join(current_dir, 'tests')
     cmd = [
