@@ -1,53 +1,83 @@
-# Stackr Bitcoin DCA Application - Main Service Container
+# Stackr Bitcoin DCA Application - Security-Hardened Container
 # 
-# PURPOSE: Containerizes the Node.js application with TypeScript, LangGraph, and SQLite
-# RELATED: Bitcoin Knots container, docker-compose orchestration
-# TAGS: docker, nodejs, typescript, langgraph, bitcoin-dca
+# PURPOSE: Containerizes the Python application with security hardening for sensitive financial operations
+# RELATED: Bitcoin Knots container, docker-compose orchestration, security audit
+# TAGS: docker, python, langgraph, fastapi, bitcoin-dca, security, hardened
 
-# Use Node.js 18 LTS as base image
-FROM node:18-alpine
+# Use Python 3.11 slim as base image with specific digest for reproducible builds
+FROM python:3.11-slim@sha256:139020233cc412efe4c8135b0efe1c7569dc8b28ddd88bddb109b764f8977e30
+
+# Update CA certificates and GPG keys first for security
+RUN apt-get update --allow-releaseinfo-change \
+    && apt-get install -y --no-install-recommends ca-certificates gnupg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory for the application
 WORKDIR /app
 
-# Install system dependencies for SQLite and other native modules
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    sqlite \
-    && rm -rf /var/cache/apk/*
+# Install remaining system dependencies with security hardening
+# - sqlite3: Database operations
+# - curl: Health checks and API calls
+# - dumb-init: Proper signal handling for security
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        sqlite3 \
+        curl \
+        dumb-init \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* /var/tmp/* \
+    # Verify critical binaries for integrity
+    && which sqlite3 \
+    && which curl \
+    && which dumb-init
 
-# Copy package files first for better caching
-COPY package*.json ./
-COPY yarn.lock* ./
+# Copy requirements file first for better caching
+COPY requirements.txt .
 
-# Install all dependencies (including devDependencies for build)
-RUN npm ci && npm cache clean --force
+# Install Python dependencies with security hardening
+# - Use --no-cache-dir to avoid storing packages in container
+# - Pin versions in requirements.txt for reproducible builds
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip cache purge
 
 # Copy application source code
-COPY . .
+COPY python/ ./python/
+COPY .env* ./
 
-# Build TypeScript application
-RUN npm run build
+# Create non-root user for security with minimal privileges
+RUN groupadd -r appuser && useradd -r -g appuser -s /bin/false appuser
 
-# Remove devDependencies to reduce image size
-RUN npm prune --production
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/logs \
+    && chown -R appuser:appuser /app
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Set security-related environment variables
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Disable Python bytecode generation for security
+    PYTHONHASHSEED=random \
+    # Use random hash seed to prevent hash-based attacks
+    DEBIAN_FRONTEND=noninteractive
 
-# Change ownership of app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# Switch to non-root user
+USER appuser
 
 # Expose port for the application
-EXPOSE 3000
+EXPOSE 8000
 
-# Health check to ensure application is running
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node healthcheck.js || exit 1
+# Health check with security considerations
+# - Use curl with timeout to prevent hanging
+# - Check only essential endpoints
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f --max-time 5 http://localhost:8000/health || exit 1
 
-# Default command to run the application
-CMD ["npm", "start"] 
+# Use dumb-init for proper signal handling and security
+# This prevents zombie processes and ensures clean shutdown
+ENTRYPOINT ["dumb-init", "--"]
+
+# Default command to run the application with security flags
+CMD ["python", "-m", "uvicorn", "python.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"] 

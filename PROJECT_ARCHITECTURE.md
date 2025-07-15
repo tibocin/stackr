@@ -18,7 +18,7 @@ Stackr is a privacy-first Bitcoin DCA and automated withdrawal system built to s
 - **Settings for managed vs local-first mode**
 - **Mobile UX with push notifications for HITL (Human-in-the-Loop)**
 
-### 2. LangGraph Engine
+### 2. LangGraph Engine (Python)
 
 - **Trigger orchestration (time, fiat, price, etc.)**
 - **Buy decision nodes**
@@ -26,15 +26,16 @@ Stackr is a privacy-first Bitcoin DCA and automated withdrawal system built to s
 - **Withdrawal condition nodes**
 - **Human-in-the-loop approval (optional node)**
 - **Logging, alerts, and fallbacks**
+- **State management and durable execution**
 
-### 3. Exchange Integration Layer
+### 3. Exchange Integration Layer (Python)
 
 - **Pluggable exchange adapters**
 - **Unified interface**
 - **Rate limits, retry logic, and credential rotation**
 - **Price feed and balance check abstraction**
 
-### 4. Bitcoin Wallet + Node Integration
+### 4. Bitcoin Wallet + Node Integration (Python)
 
 - **Connect to Bitcoin Knots RPC**
 - **Scan xpub for unused addresses**
@@ -119,22 +120,23 @@ flowchart TD
 
 ### Strategy Interface
 
-```ts
-evaluateStrategy(
-  strategyId: string,
-  currentPrice: number,
-  historicalData: PriceFeed[],
-  daysSinceGenesis: number
-): StrategyResult
+```python
+def evaluate_strategy(
+    strategy_id: str,
+    current_price: float,
+    historical_data: List[PriceFeed],
+    days_since_genesis: int
+) -> StrategyResult:
+    pass
 ```
 
 - Allows for selection of multiple strategies
 - Modular logic per strategy file
-- Common `StrategyResult`: `{ action: 'buy' | 'sell' | 'hold', multiplier: number }`
+- Common `StrategyResult`: `{"action": "buy" | "sell" | "hold", "multiplier": float}`
 
 ### Power Law 95th Percentile Strategy
 
-- **Model Price**: `modelPrice = A * (daysSinceGenesis ^ B)`
+- **Model Price**: `model_price = A * (days_since_genesis ^ B)`
 - **Percentile Band**: 95th percentile of all actual prices historically above model price
 - **Buy Condition**: If current price < model price → `buy`
 - **Sell Condition**: If current price > 95th percentile band → `sell`
@@ -145,7 +147,7 @@ evaluateStrategy(
 
 ## Key Function Specs
 
-### `evaluateStrategy(strategyId: string, currentPrice: number, historicalData: PriceFeed[], daysSinceGenesis: number): StrategyResult`
+### `evaluate_strategy(strategy_id: str, current_price: float, historical_data: List[PriceFeed], days_since_genesis: int) -> StrategyResult`
 
 - **Inputs**: strategy ID, current price, historical price data, block age in days
 - **Outputs**: action (`buy`, `sell`, `hold`) + multiplier (e.g., 0.5, 1.0, 2.0)
@@ -156,7 +158,7 @@ evaluateStrategy(
   - No historical data → fallback to static DCA
   - API unresponsive → retry/backoff
 
-### `calculateDcaAmount(baseAmount: number, multiplier: number): number`
+### `calculate_dca_amount(base_amount: float, multiplier: float) -> float`
 
 - **Inputs**: base DCA amount, multiplier from strategy
 - **Outputs**: adjusted DCA buy amount
@@ -165,9 +167,9 @@ evaluateStrategy(
 
   - Multiplier < 0.1 or > 10 → clamp to safe range
 
-### `buyBitcoin(amount: number, strategyId: string): TxReceipt`
+### `buy_bitcoin(amount: float, strategy_id: str) -> TxReceipt`
 
-- **Inputs**: amount (fiat or sats), strategyId
+- **Inputs**: amount (fiat or sats), strategy_id
 - **Outputs**: transaction receipt
 - **Side effects**: API call to exchange, updates to log
 - **Edge cases handled**:
@@ -175,7 +177,7 @@ evaluateStrategy(
   - API timeout → retry
   - Order failed → alert + fallback
 
-### `withdrawToXpub(xpub: string, amount: number): Txid`
+### `withdraw_to_xpub(xpub: str, amount: float) -> str`
 
 - **Inputs**: validated xpub, BTC amount
 - **Outputs**: Bitcoin transaction ID
@@ -185,7 +187,7 @@ evaluateStrategy(
   - No unused address → alert
   - RPC offline → retry with exponential backoff
 
-### `checkTriggers(): TriggerState[]`
+### `check_triggers() -> List[TriggerState]`
 
 - Checks all conditions (price, balance, time)
 - Routes logic in LangGraph
@@ -204,16 +206,38 @@ evaluateStrategy(
 
 ## Development Zones for Concurrent Work
 
-| Domain                | Tech Stack                | Owners / Teams     |
-| --------------------- | ------------------------- | ------------------ |
-| UI & Auth             | React, Next.js, Magic     | Frontend / UX      |
-| Automation Logic      | LangGraph + LangChain     | Workflow Engineers |
-| Exchange Connectors   | TypeScript + REST/GraphQL | Integrations       |
-| Wallet + Node Layer   | Node.js + RPC             | Bitcoin Devs       |
-| Storage & Export      | SQLite/Postgres           | Backend Team       |
-| Security & Compliance | Crypto libs + policy      | Security Officer   |
-| Mobile Push + HITL    | Web Push / Expo / FCM     | Mobile Team        |
-| Docker Infra & CI     | Docker, Vercel, Compose   | DevOps             |
+| Domain                | Tech Stack              | Owners / Teams     |
+| --------------------- | ----------------------- | ------------------ |
+| UI & Auth             | React, Next.js, Magic   | Frontend / UX      |
+| Automation Logic      | LangGraph + LangChain   | Workflow Engineers |
+| Exchange Connectors   | Python + REST/GraphQL   | Integrations       |
+| Wallet + Node Layer   | Python + RPC            | Bitcoin Devs       |
+| Storage & Export      | SQLite/Postgres         | Backend Team       |
+| Security & Compliance | Crypto libs + policy    | Security Officer   |
+| Mobile Push + HITL    | Web Push / Expo / FCM   | Mobile Team        |
+| Docker Infra & CI     | Docker, Vercel, Compose | DevOps             |
+
+---
+
+## LangGraph Architecture Benefits
+
+### State Management
+
+- **Shared State**: LangGraph provides built-in state management across nodes
+- **Durable Execution**: Checkpointing allows workflows to resume from failures
+- **Context Preservation**: State persists across node transitions
+
+### Node Isolation
+
+- **Independent Execution**: Each node runs in isolation with clear inputs/outputs
+- **Message Passing**: Nodes communicate through structured state updates
+- **Error Isolation**: Node failures don't cascade to other nodes
+
+### Event-Driven Communication
+
+- **Conditional Routing**: Edges can be conditional based on node outputs
+- **Parallel Execution**: Multiple nodes can run concurrently when possible
+- **Event Handling**: Built-in support for async operations and external events
 
 ---
 
@@ -226,3 +250,4 @@ evaluateStrategy(
 - Strategy logic (e.g. Power Law 95th percentile) directly adjusts DCA intensity
 - Mobile experience with push notification for human approval is part of MVP
 - Docker will be used from day one to ensure parity across environments
+- LangGraph provides native support for state management, node isolation, and event-driven communication
