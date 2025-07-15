@@ -18,34 +18,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Security vulnerability scanning
-  security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: "sarif"
-          output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH"
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: "trivy-results.sarif"
-
   # Docker build with security checks
   build-and-test:
     runs-on: ubuntu-latest
-    needs: security-scan
     permissions:
       contents: read
       packages: write
@@ -93,6 +68,31 @@ jobs:
           provenance: true
           sbom: true
 
+  # Security vulnerability scanning (after build)
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+
   # Security testing
   security-test:
     runs-on: ubuntu-latest
@@ -102,17 +102,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Bandit security linter
-        uses: python-security/bandit-action@v1
-        with:
-          path: python/
-          level: low
-          format: json
-          output: bandit-report.json
+        run: |
+          pip install bandit
+          bandit -r python/ -f json -o bandit-report.json
 
       - name: Run Safety check for Python dependencies
         run: |
           pip install safety
-          safety check --json --output safety-report.json || true
+          safety check --json --output safety-report.json
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
@@ -141,6 +138,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Run Python tests
+        run: |
+          cd python
+          python run_tests.py
+
       - name: Run integration tests
         run: |
           # Test Docker container security
@@ -166,9 +168,8 @@ jobs:
   # Deployment (only on main branch)
   deploy:
     runs-on: ubuntu-latest
-    needs: [security-scan, build-and-test, security-test, integration-test]
+    needs: [build-and-test, security-scan, security-test, integration-test]
     if: github.ref == 'refs/heads/main'
-    environment: production
     steps:
       - name: Deploy to production
         run: |
