@@ -10,6 +10,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from typing import Dict, Any
+from pydantic import BaseModel, EmailStr
+
+# Import our AuthService
+from .services.auth_service import AuthService
 
 app = FastAPI(
     title="Stackr Bitcoin DCA",
